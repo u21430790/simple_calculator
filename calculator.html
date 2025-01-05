@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scientific Calculator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: #f0f0f0;
+        }
+
+        .calculator {
+            background: #333;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            width: 340px;
+        }
+
+        #display {
+            width: 100%;
+            height: 60px;
+            background: #fff;
+            border: none;
+            padding: 10px;
+            font-size: 24px;
+            text-align: right;
+            margin-bottom: 10px;
+            border-radius: 5px;
+        }
+
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 5px;
+        }
+
+        button {
+            padding: 15px;
+            font-size: 18px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            background: #444;
+            color: white;
+            transition: background 0.2s;
+        }
+
+        button:hover {
+            background: #555;
+        }
+
+        .operator {
+            background: #ff9500;
+        }
+
+        .operator:hover {
+            background: #ffaa33;
+        }
+
+        .function {
+            background: #666;
+        }
+
+        .function:hover {
+            background: #777;
+        }
+
+        .equals {
+            background: #2ecc71;
+        }
+
+        .equals:hover {
+            background: #27ae60;
+        }
+
+        .clear {
+            background: #e74c3c;
+        }
+
+        .clear:hover {
+            background: #c0392b;
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator">
+        <input type="text" id="display" readonly>
+        <div class="buttons">
+            <button class="clear" onclick="clearDisplay()">C</button>
+            <button class="function" onclick="addToDisplay('(')">(</button>
+            <button class="function" onclick="addToDisplay(')')">)</button>
+            <button class="operator" onclick="addToDisplay('/')">/</button>
+
+            <button onclick="addToDisplay('7')">7</button>
+            <button onclick="addToDisplay('8')">8</button>
+            <button onclick="addToDisplay('9')">9</button>
+            <button class="operator" onclick="addToDisplay('*')">×</button>
+
+            <button onclick="addToDisplay('4')">4</button>
+            <button onclick="addToDisplay('5')">5</button>
+            <button onclick="addToDisplay('6')">6</button>
+            <button class="operator" onclick="addToDisplay('-')">-</button>
+
+            <button onclick="addToDisplay('1')">1</button>
+            <button onclick="addToDisplay('2')">2</button>
+            <button onclick="addToDisplay('3')">3</button>
+            <button class="operator" onclick="addToDisplay('+')">+</button>
+
+            <button onclick="addToDisplay('0')">0</button>
+            <button onclick="addToDisplay('.')">.</button>
+            <button class="function" onclick="addFunction('sin')">sin</button>
+            <button class="equals" onclick="calculate()">=</button>
+
+            <button class="function" onclick="addFunction('cos')">cos</button>
+            <button class="function" onclick="addFunction('tan')">tan</button>
+            <button class="function" onclick="addFunction('sqrt')">√</button>
+            <button class="function" onclick="addFunction('log')">log</button>
+        </div>
+    </div>
+
+    <script>
+        const display = document.getElementById('display');
+        let expression = '';
+
+        function addToDisplay(value) {
+            expression += value;
+            display.value = expression;
+        }
+
+        function addFunction(func) {
+            expression += `${func}(`;
+            display.value = expression;
+        }
+
+        function clearDisplay() {
+            expression = '';
+            display.value = '';
+        }
+
+        function calculate() {
+            try {
+                // Replace mathematical functions with their JavaScript equivalents
+                let sanitizedExpr = expression
+                    .replace(/sin\(/g, 'Math.sin(')
+                    .replace(/cos\(/g, 'Math.cos(')
+                    .replace(/tan\(/g, 'Math.tan(')
+                    .replace(/sqrt\(/g, 'Math.sqrt(')
+                    .replace(/log\(/g, 'Math.log10(');
+
+                // Validate the expression using a custom parser
+                if (!isValidExpression(sanitizedExpr)) {
+                    throw new Error('Invalid expression');
+                }
+
+                // Create a function to evaluate the expression securely
+                const result = new Function('return ' + sanitizedExpr)();
+                
+                expression = result.toString();
+                display.value = expression;
+            } catch (error) {
+                display.value = 'Error';
+                expression = '';
+            }
+        }
+
+        function isValidExpression(expr) {
+            // Basic validation to check for valid mathematical expression
+            const validChars = /^[0-9+\-*/().MathsincogtqlrR\s]+$/;
+            if (!validChars.test(expr)) {
+                return false;
+            }
+
+            // Check for balanced parentheses
+            let parenthesesCount = 0;
+            for (let char of expr) {
+                if (char === '(') parenthesesCount++;
+                if (char === ')') parenthesesCount--;
+                if (parenthesesCount < 0) return false;
+            }
+            return parenthesesCount === 0;
+        }
+
+        // Add keyboard support
+        document.addEventListener('keydown', (event) => {
+            const key = event.key;
+            
+            if (/[0-9+\-*/.()]/.test(key)) {
+                addToDisplay(key);
+            } else if (key === 'Enter') {
+                calculate();
+            } else if (key === 'Escape') {
+                clearDisplay();
+            } else if (key === 'Backspace') {
+                expression = expression.slice(0, -1);
+                display.value = expression;
+            }
+        });
+    </script>
+</body>
+</html>
